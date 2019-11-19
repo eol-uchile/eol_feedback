@@ -1,0 +1,3 @@
+[lms.djangoapp]
+eol_feedback = eol_feedback.apps:EolFeedbackConfig
+
