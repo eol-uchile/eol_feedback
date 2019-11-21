@@ -18,5 +18,8 @@ setuptools.setup(
         "lms.djangoapp": [
             "eol_feedback = eol_feedback.apps:EolFeedbackConfig",
         ],
+        "openedx.course_tab": [
+            "eol_feedback = eol_feedback.plugins:EolFeedbackTab",
+        ]
     },
 )

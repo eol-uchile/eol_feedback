@@ -12,7 +12,7 @@ class EolFeedbackConfig(AppConfig):
         PluginURLs.CONFIG: {
             ProjectType.LMS: {
                 PluginURLs.NAMESPACE: u'',
-                PluginURLs.REGEX: r'^eol/feedback',
+                PluginURLs.REGEX: r'^',
                 PluginURLs.RELATIVE_PATH: u'urls',
             }
         },

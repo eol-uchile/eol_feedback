@@ -1,13 +1,17 @@
 from __future__ import absolute_import
 
 from django.conf.urls import url
+from django.conf import settings
 
-from discussion import views
+from .views import EolFeedbackFragmentView
 
-def return_200(request):
-    from django.http import HttpResponse
-    return HttpResponse('')
 
-urlpatterns = [
-    url(r'', return_200)
-]
+urlpatterns = (
+       url(
+           r'courses/{}/student_feedback$'.format(
+               settings.COURSE_ID_PATTERN,
+           ),
+           EolFeedbackFragmentView.as_view(),
+           name='feedback_view',
+       ),
+   )

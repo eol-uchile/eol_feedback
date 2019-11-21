@@ -2,6 +2,7 @@ eol_feedback/__init__.py
 eol_feedback/admin.py
 eol_feedback/apps.py
 eol_feedback/models.py
+eol_feedback/plugins.py
 eol_feedback/tests.py
 eol_feedback/urls.py
 eol_feedback/views.py
