@@ -57,21 +57,21 @@
               <div class="col-md-4 py-2 my-auto">
                 <p class="font-weight-bold my-2">Escala de Calificación</p>
                 <%
-                    course_grade_cutoffs_pass = int(course.lowest_passing_grade*100)
+                    course_grade_cutoffs_pass = int(grade_cutoff*100)
                 %>
                 <p class="font-weight-light my-2">${course_grade_cutoffs_pass}% de exigencia</p>
                 <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
                 <div class="progress my-2">
-                    <div class="progress-bar progress-bar-striped" role="progressbar"
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                     aria-valuenow="30" aria-valuemin="0" aria-valuemax="100" style="width:30%">
                         30%
                     </div>
                 </div>
             </div>
             <div class="col-md-4 py-2 bg-dark text-white my-auto">
-                <p class="my-3"><span class="font-weight-bold">Promedio del Curso:</span> <span class="font-weight-light"></span> 4.0</p>
-                <p class="my-3"><span class="font-weight-bold">Nota Mínima:</span> <span class="font-weight-light"></span> 4.0</p>
-                <p class="my-3"><span class="font-weight-bold">Nota Máxima:</span> <span class="font-weight-light"></span> 4.0</p>
+                <p class="my-3"><span class="font-weight-bold">Promedio del Curso:</span> <span class="font-weight-light"></span> ${avg_grade}</p>
+                <p class="my-3"><span class="font-weight-bold">Nota Mínima:</span> <span class="font-weight-light"></span> ${min_grade}</p>
+                <p class="my-3"><span class="font-weight-bold">Nota Máxima:</span> <span class="font-weight-light"></span> ${max_grade}</p>
             </div>
         </div>
 
@@ -90,7 +90,7 @@
             <div class="col-md-4 py-2 my-auto">
                 <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
                 <div class="progress my-2">
-                    <div class="progress-bar progress-bar-striped" role="progressbar"
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                     aria-valuenow="15" aria-valuemin="0" aria-valuemax="100" style="width:15%">
                         15%
                     </div>
@@ -138,7 +138,7 @@
             <div class="col-md-4 py-2 my-auto">
                 <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
                 <div class="progress my-2">
-                    <div class="progress-bar progress-bar-striped" role="progressbar"
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                     aria-valuenow="15" aria-valuemin="0" aria-valuemax="100" style="width:15%">
                         15%
                     </div>
@@ -186,7 +186,7 @@
             <div class="col-md-4 py-2 my-auto">
                 <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
                 <div class="progress my-2">
-                    <div class="progress-bar progress-bar-striped" role="progressbar"
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                     aria-valuenow="15" aria-valuemin="0" aria-valuemax="100" style="width:15%">
                         15%
                     </div>
