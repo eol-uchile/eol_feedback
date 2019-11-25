@@ -51,7 +51,12 @@
             <div class="col-md-4 py-2 my-auto">
                 <p class="font-weight-bold text-center my-2">NOTA</p>
                 <div class="my-3 text-center">
-                    <h3 class="d-inline bg-white rounded py-2 px-4">2.7</h3>
+                    <%
+                        if this_student['grade_summary']['percent'] < grade_cutoff:
+                            final_grade = round(10. * (3. / grade_cutoff * this_student['grade_summary']['percent'] + 1.)) / 10.
+                        final_grade = round((3. / (1. - grade_cutoff) * this_student['grade_summary']['percent'] + (7. - (3. / (1. - grade_cutoff)))) * 10.) / 10.
+                    %>
+                    <h3 class="d-inline bg-white rounded py-2 px-4">${final_grade}</h3>
                 </div>
             </div>
               <div class="col-md-4 py-2 my-auto">
@@ -62,9 +67,12 @@
                 <p class="font-weight-light my-2">${course_grade_cutoffs_pass}% de exigencia</p>
                 <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
                 <div class="progress my-2">
+                    <%
+                        student_avg_percent = this_student['grade_summary']['percent'] * 100
+                    %>
                     <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                    aria-valuenow="30" aria-valuemin="0" aria-valuemax="100" style="width:30%">
-                        30%
+                    aria-valuenow="${student_avg_percent}" aria-valuemin="0" aria-valuemax="100" style="width:${student_avg_percent}%">
+                        ${student_avg_percent}%
                     </div>
                 </div>
             </div>

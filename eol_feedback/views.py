@@ -19,19 +19,20 @@ class EolFeedbackFragmentView(EdxFragmentView):
     def render_to_fragment(self, request, course_id, **kwargs):
         course_key = CourseKey.from_string(course_id)
         course = get_course_with_access(request.user, "load", course_key)
-        grade_cutoff, avg_grade, min_grade, max_grade = self.get_course_info(course, course_key)
+        this_student, grade_cutoff, avg_grade, min_grade, max_grade = self.get_course_info(request.user, course, course_key)
         context = {
             "course": course,
             "avg_grade": avg_grade,
             "min_grade": min_grade,
             "max_grade": max_grade,
-            "grade_cutoff": grade_cutoff
+            "grade_cutoff": grade_cutoff,
+            "this_student": this_student
         }
         html = render_to_string('eol_feedback/eol_feedback_fragment.html', context)
         fragment = Fragment(html)
         return fragment
 
-    def get_course_info(self, course, course_key):
+    def get_course_info(self, user, course, course_key):
         # Get active students on the course
         enrolled_students = User.objects.filter(
             courseenrollment__course_id=course_key,
@@ -61,6 +62,8 @@ class EolFeedbackFragmentView(EdxFragmentView):
             avg_grade_percent = avg_grade_percent + student_grade_percent
             min_grade_percent = min(student_grade_percent, min_grade_percent)
             max_grade_percent = max(student_grade_percent, max_grade_percent)
+            if user.id == student['id']:
+                this_student = student
         avg_grade_percent = avg_grade_percent / total_students
         grade_cutoff = min(course.grade_cutoffs.values()) # Get the min value
 
@@ -68,7 +71,7 @@ class EolFeedbackFragmentView(EdxFragmentView):
         avg_grade = self.grade_percent_scaled(avg_grade_percent, grade_cutoff)
         min_grade = self.grade_percent_scaled(min_grade_percent, grade_cutoff)
         max_grade = self.grade_percent_scaled(max_grade_percent, grade_cutoff)
-        return grade_cutoff, avg_grade, min_grade, max_grade
+        return this_student, grade_cutoff, avg_grade, min_grade, max_grade
 
 
     def grade_percent_scaled(self, grade_percent, grade_cutoff):
