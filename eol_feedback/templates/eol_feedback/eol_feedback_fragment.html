@@ -49,13 +49,14 @@
         <h2 class="hd hd-2 mt-2 text-center text-primary">Información General</h2>
         <div class="row d-flex bg-light my-2" id="feedback-general">
             <div class="col-6 col-md-4 py-2 my-auto">
-                <p class="font-weight-bold text-center my-2">NOTA</p>
-                <div class="my-3 text-center">
+                <p class="font-weight-bold text-center mt-2">NOTA</p>
+                <p class="font-italic font-weight-light text-center my-0"><small>(Incluye controles y preguntas evaluadas)</small></p>
+                <div class="mt-3 text-center">
                     <%
-                        if this_student['grade_summary']['percent'] < grade_cutoff:
-                            final_grade = round(10. * (3. / grade_cutoff * this_student['grade_summary']['percent'] + 1.)) / 10.
+                        if grade_summary['percent'] < grade_cutoff:
+                            final_grade = round(10. * (3. / grade_cutoff * grade_summary['percent'] + 1.)) / 10.
                         else:
-                            final_grade = round((3. / (1. - grade_cutoff) * this_student['grade_summary']['percent'] + (7. - (3. / (1. - grade_cutoff)))) * 10.) / 10.
+                            final_grade = round((3. / (1. - grade_cutoff) * grade_summary['percent'] + (7. - (3. / (1. - grade_cutoff)))) * 10.) / 10.
                     %>
                     <h3 class="d-inline bg-white rounded py-2 px-4">${final_grade}</h3>
                 </div>
@@ -69,7 +70,7 @@
                 <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
                 <div class="progress my-2">
                     <%
-                        student_avg_percent = this_student['grade_summary']['percent'] * 100
+                        student_avg_percent = grade_summary['percent'] * 100
                     %>
                     <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                     aria-valuenow="${student_avg_percent}" aria-valuemin="0" aria-valuemax="100" style="width:${student_avg_percent}%">
@@ -87,57 +88,66 @@
         <hr class="divider my-4">
 
         <!-- 'Control' Content -->
-        % for evaluation in this_student['grade_summary']['section_breakdown']:
-            % if 'CT-' in evaluation['label']:
-                <%
-                    if evaluation['percent'] < grade_cutoff:
-                        grade = round(10. * (3. / grade_cutoff * evaluation['percent'] + 1.)) / 10.
-                    else:
-                        grade = round((3. / (1. - grade_cutoff) * evaluation['percent'] + (7. - (3. / (1. - grade_cutoff)))) * 10.) / 10.
-                    percent = evaluation['percent']*100
-                %>
-                <h2 class="hd hd-2 my-2 text-center text-primary">${evaluation['category']}</h2>
-                <div class="row d-flex bg-light my-2" id="feedback-general">
-                    <div class="col-6 col-md-4 py-2 my-auto">
-                        <p class="font-weight-bold text-center my-2">NOTA</p>
-                        <div class="my-3 text-center">
-                            <h3 class="d-inline bg-white rounded py-2 px-4">${grade}</h3>
+        %for section in courseware_summary:
+            %for subsection in section['sections']:
+                % if subsection.format and ('Control' in subsection.format):
+                    <%
+                        if subsection.percent_graded < grade_cutoff:
+                            grade = round(10. * (3. / grade_cutoff * subsection.percent_graded + 1.)) / 10.
+                        else:
+                            grade = round((3. / (1. - grade_cutoff) * subsection.percent_graded + (7. - (3. / (1. - grade_cutoff)))) * 10.) / 10.
+                        percent = subsection.percent_graded*100
+                    %>
+                    <h2 class="hd hd-2 my-2 text-center text-primary">${subsection.format}</h2>
+                    <div class="row d-flex bg-light my-2" id="feedback-general">
+                        <div class="col-6 col-md-4 py-2 my-auto">
+                            <p class="font-weight-bold text-center my-2">NOTA</p>
+                            <div class="my-3 text-center">
+                                <h3 class="d-inline bg-white rounded py-2 px-4">${grade}</h3>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-6 col-md-8 py-2 my-auto">
-                        <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
-                        <div class="progress my-2">
-                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                            aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100" style="width:${percent}%">
-                                ${percent}%
+                        <div class="col-6 col-md-8 py-2 my-auto">
+                            <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
+                            <div class="progress my-2">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100" style="width:${percent}%">
+                                    ${percent}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 border-top border-white py-2 my-auto">
+                            <div class="row d-flex">
+                                <%
+                                    correct_blocks = []
+                                    incorrect_blocks = []
+                                    for block, score in subsection.problem_scores.items():
+                                        if score.earned == score.possible:
+                                            correct_blocks.append(block.block_id)
+                                        else:
+                                            incorrect_blocks.append(block.block_id)
+                                %>
+                                <div class="col-md-6 py-2">
+                                    <p class="text-monospace text-uppercase font-weight-bold text-center my-2"><i class="fas fa-check-circle"></i> Tareas Logradas</p>
+                                    <ul>
+                                        %for block in correct_blocks:
+                                            <li>${block}</li>
+                                        %endfor
+                                    </ul>
+                                </div>
+                                <div class="col-md-6 py-2">
+                                    <p class="text-monospace text-uppercase font-weight-bold text-center my-2"><i class="fas fa-minus-circle"></i> Tareas no Logradas</p>
+                                    <ul>
+                                        %for block in incorrect_blocks:
+                                            <li>${block}</li>
+                                        %endfor
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-12 border-top border-white py-2 my-auto">
-                        <div class="row d-flex">
-                            <div class="col-md-6 py-2">
-                                <p class="text-monospace text-uppercase font-weight-bold text-center my-2"><i class="fas fa-check-circle"></i> Tareas Logradas</p>
-                                <ul>
-                                    <li>Lorem ipsum dolor sit amet, consectetuer adipiscing elit.</li>
-                                    <li>Aliquam tincidunt mauris eu risus.</li>
-                                    <li>Vestibulum auctor dapibus neque.</li>
-                                    <li>Nunc dignissim risus id metus.</li>
-                                </ul>
-                            </div>
-                            <div class="col-md-6 py-2">
-                                <p class="text-monospace text-uppercase font-weight-bold text-center my-2"><i class="fas fa-minus-circle"></i> Tareas no Logradas</p>
-                                <ul>
-                                    <li>Praesent placerat risus quis eros.</li>
-                                    <li>Fusce pellentesque suscipit nibh.</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-        
-                <hr class="divider my-4">
-            % endif
-        % endfor
-        
+                    <hr class="divider my-4">
+                %endif
+            %endfor
+        %endfor
     </div>
 </main>

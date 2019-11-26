@@ -14,25 +14,57 @@ from django.contrib.auth.models import User
 from lms.djangoapps.grades.course_grade_factory import CourseGradeFactory
 from xmodule.modulestore.django import modulestore
 
+from courseware.access import has_access
+from courseware.masquerade import setup_masquerade
+from django.db.models import prefetch_related_objects
+from openedx.features.course_duration_limits.access import generate_course_expired_fragment
+
+'''
+    TODO:
+    - Final grade calculated by percentage of progress. 
+        > If the student didn't answer a test (or the test is not released) he will have 0% (0.0) and final grade will be affected. 
+        > See what to do in this case.
+'''
+
 
 class EolFeedbackFragmentView(EdxFragmentView):
     def render_to_fragment(self, request, course_id, **kwargs):
         course_key = CourseKey.from_string(course_id)
         course = get_course_with_access(request.user, "load", course_key)
-        this_student, grade_cutoff, avg_grade, min_grade, max_grade = self.get_course_info(request.user, course, course_key)
+
+        # Get general info of course
+        grade_cutoff, avg_grade, min_grade, max_grade = self.get_course_info(course, course_key)
+
+        # masquerade and student required for preview_menu (admin)
+        staff_access = bool(has_access(request.user, 'staff', course))
+        masquerade, student = setup_masquerade(request, course_key, staff_access, reset_masquerade_data=True)
+        prefetch_related_objects([student], 'groups')
+        if request.user.id != student.id:
+            # refetch the course as the assumed student
+            course = get_course_with_access(student, 'load', course_key, check_if_enrolled=True)
+        course_grade = CourseGradeFactory().read(student, course) # Student grades
+        courseware_summary = list(course_grade.chapter_grades.values())
+        course_expiration_fragment = generate_course_expired_fragment(student, course)
+
         context = {
             "course": course,
             "avg_grade": avg_grade,
             "min_grade": min_grade,
             "max_grade": max_grade,
             "grade_cutoff": grade_cutoff,
-            "this_student": this_student
+            "supports_preview_menu": True,
+            "staff_access": staff_access,
+            "masquerade": masquerade,
+            "student": student,
+            "courseware_summary": courseware_summary,
+            "grade_summary": course_grade.summary,
+            "course_expiration_fragment": course_expiration_fragment,
         }
         html = render_to_string('eol_feedback/eol_feedback_fragment.html', context)
         fragment = Fragment(html)
         return fragment
 
-    def get_course_info(self, user, course, course_key):
+    def get_course_info(self, course, course_key):
         # Get active students on the course
         enrolled_students = User.objects.filter(
             courseenrollment__course_id=course_key,
@@ -62,8 +94,6 @@ class EolFeedbackFragmentView(EdxFragmentView):
             avg_grade_percent = avg_grade_percent + student_grade_percent
             min_grade_percent = min(student_grade_percent, min_grade_percent)
             max_grade_percent = max(student_grade_percent, max_grade_percent)
-            if user.id == student['id']:
-                this_student = student
         avg_grade_percent = avg_grade_percent / total_students
         grade_cutoff = min(course.grade_cutoffs.values()) # Get the min value
 
@@ -71,7 +101,7 @@ class EolFeedbackFragmentView(EdxFragmentView):
         avg_grade = self.grade_percent_scaled(avg_grade_percent, grade_cutoff)
         min_grade = self.grade_percent_scaled(min_grade_percent, grade_cutoff)
         max_grade = self.grade_percent_scaled(max_grade_percent, grade_cutoff)
-        return this_student, grade_cutoff, avg_grade, min_grade, max_grade
+        return grade_cutoff, avg_grade, min_grade, max_grade
 
 
     def grade_percent_scaled(self, grade_percent, grade_cutoff):
