@@ -11,6 +11,7 @@ eol_feedback.egg-info/SOURCES.txt
 eol_feedback.egg-info/dependency_links.txt
 eol_feedback.egg-info/entry_points.txt
 eol_feedback.egg-info/top_level.txt
+eol_feedback/migrations/0001_initial.py
 eol_feedback/migrations/__init__.py
 eol_feedback/settings/__init__.py
 eol_feedback/settings/common.py
