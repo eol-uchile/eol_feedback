@@ -70,6 +70,7 @@ class EolFeedbackFragmentView(EdxFragmentView):
             "courseware_summary": courseware_summary,
             "grade_summary": course_grade.summary,
             "course_expiration_fragment": course_expiration_fragment,
+            "grade_percent_scaled" : self.grade_percent_scaled,
             "get_feedback" : self.get_feedback,
             "update_url" : request.build_absolute_uri('/')[:-1] + "/student_feedback/update",
         }

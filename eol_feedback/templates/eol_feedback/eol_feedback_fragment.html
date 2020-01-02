@@ -6,6 +6,7 @@
 <%inherit file="/main.html" />
 <%block name="headextra">
 <%static:css group='style-course'/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
 </%block>
 <%include file="/courseware/course_navigation.html" args="active_page='eol_feedback'" />
 
@@ -62,14 +63,15 @@
         <h2 class="hd hd-2 mt-2 text-center text-primary">Información General</h2>
         <div class="row d-flex bg-light my-2" id="feedback-general">
             <div class="col-6 col-md-4 py-2 my-auto">
-                <p class="font-weight-bold text-center mt-2">NOTA</p>
-                <p class="font-italic font-weight-light text-center my-0"><small>(Incluye controles y preguntas evaluadas)</small></p>
+                <p class="font-weight-bold text-center mt-2">NOTA FINAL <i data-toggle="tooltip" data-placement="top" title="Nota Parcial" class="fas fa-info-circle"></i></p>
+                <script>
+                    $(function () {
+                        $('[data-toggle="tooltip"]').tooltip()
+                    })
+                </script>
                 <div class="mt-3 text-center">
                     <%
-                        if grade_summary['percent'] < grade_cutoff:
-                            final_grade = round(10. * (3. / grade_cutoff * grade_summary['percent'] + 1.)) / 10.
-                        else:
-                            final_grade = round((3. / (1. - grade_cutoff) * grade_summary['percent'] + (7. - (3. / (1. - grade_cutoff)))) * 10.) / 10.
+                        final_grade = grade_percent_scaled(grade_summary['percent'], grade_cutoff)
                     %>
                     <h3 class="d-inline bg-white rounded py-2 px-4">${final_grade}</h3>
                 </div>
@@ -103,13 +105,49 @@
         % if not is_staff_view:
             <!-- 'Control' Content -->
             %for section in courseware_summary:
+                <%
+                    percent_preg_evaluadas = .0
+                    counter_preg_evaluadas = 0
+                    format_preg_evaluadas = ""
+                %>
                 %for subsection in section['sections']:
-                    % if subsection.format and ('Control' in subsection.format):
+                    % if subsection.format and ('Preguntas Evaluadas' in subsection.format):
                         <%
-                            if subsection.percent_graded < grade_cutoff:
-                                grade = round(10. * (3. / grade_cutoff * subsection.percent_graded + 1.)) / 10.
-                            else:
-                                grade = round((3. / (1. - grade_cutoff) * subsection.percent_graded + (7. - (3. / (1. - grade_cutoff)))) * 10.) / 10.
+                            counter_preg_evaluadas += 1
+                            percent_preg_evaluadas += subsection.percent_graded
+                            format_preg_evaluadas = subsection.format
+                        %>
+                    % endif
+                    % if subsection.format and ('Control' in subsection.format):
+                        <!-- Preguntas Evaluadas -->
+                        % if counter_preg_evaluadas != 0:
+                            <%
+                                percent_preg_evaluadas /= counter_preg_evaluadas
+                                grade_preg_evaluadas = grade_percent_scaled(percent_preg_evaluadas, grade_cutoff)
+                                percent_preg_evaluadas *= 100
+                            %>
+                            <h2 class="hd hd-2 my-2 text-center text-primary">${format_preg_evaluadas}</h2>
+                            <div class="row d-flex bg-light my-2" id="feedback-general">
+                                <div class="col-6 col-md-4 py-2 my-auto">
+                                    <p class="font-weight-bold text-center my-2">NOTA</p>
+                                    <div class="my-3 text-center">
+                                        <h3 class="d-inline bg-white rounded py-2 px-4">${grade_preg_evaluadas}</h3>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-8 py-2 my-auto">
+                                    <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
+                                    <div class="progress my-2">
+                                        <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                        aria-valuenow="${percent_preg_evaluadas}" aria-valuemin="0" aria-valuemax="100" style="width:${percent_preg_evaluadas}%">
+                                            ${percent_preg_evaluadas}%
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        % endif
+                        <!-- Control -->
+                        <%
+                            grade = grade_percent_scaled(subsection.percent_graded, grade_cutoff)
                             percent = subsection.percent_graded*100
                         %>
                         <h2 class="hd hd-2 my-2 text-center text-primary">${subsection.format}</h2>
