@@ -20,7 +20,7 @@ from django.db.models import prefetch_related_objects
 from openedx.features.course_duration_limits.access import generate_course_expired_fragment
 
 from django.db import transaction
-from models import EolFeedback
+from models import EolFeedback, SectionVisibility
 
 from django.http import HttpResponse
 
@@ -71,8 +71,10 @@ class EolFeedbackFragmentView(EdxFragmentView):
             "grade_summary": course_grade.summary,
             "course_expiration_fragment": course_expiration_fragment,
             "grade_percent_scaled" : self.grade_percent_scaled,
+            "get_section_visibility" : self.get_section_visibility,
             "get_feedback" : self.get_feedback,
             "update_url" : request.build_absolute_uri('/')[:-1] + "/student_feedback/update",
+            "set_visibility_url" : request.build_absolute_uri('/')[:-1] + "/student_feedback/set_visibility",
         }
         return context
 
@@ -121,6 +123,13 @@ class EolFeedbackFragmentView(EdxFragmentView):
             return round(10. * (3. / grade_cutoff * grade_percent + 1.)) / 10.
         return round((3. / (1. - grade_cutoff) * grade_percent + (7. - (3. / (1. - grade_cutoff)))) * 10.) / 10.
 
+    def get_section_visibility(self, section_id, course_id):
+        try:
+            visibility = SectionVisibility.objects.get(section_id=section_id, course_id=course_id)
+            return visibility.is_visible
+        except SectionVisibility.DoesNotExist:
+            return False    
+    
     def get_feedback(self, block_id):
         try:
             feedback = EolFeedback.objects.get(block_id=block_id)
@@ -156,5 +165,36 @@ def update_feedback(request):
             feedback = EolFeedback.objects.create(
                 block_id = block_id,
                 block_feedback = block_feedback
+            )
+            return HttpResponse(status=201)
+
+def set_visibility(request):
+    # check method and params
+    if request.method != "POST":
+        return HttpResponse(status=400)
+    if 'section_id' not in request.POST and 'course_id' not in request.POST:
+        return HttpResponse(status=400)
+    
+    # check for access
+    course_id = request.POST['course_id']
+    course_key = CourseKey.from_string(course_id)
+    course = get_course_with_access(request.user, "load", course_key)
+    staff_access = bool(has_access(request.user, 'staff', course))
+    if not staff_access:
+        return HttpResponse(status=401)
+
+    # change or create visibility
+    section_id = request.POST['section_id']
+    with transaction.atomic():
+        try:
+            visibility = SectionVisibility.objects.get(section_id=section_id, course_id=course_id)
+            visibility.is_visible = not visibility.is_visible # change bool
+            visibility.save()
+            return HttpResponse(status=200)
+        except SectionVisibility.DoesNotExist:
+            visibility = SectionVisibility.objects.create(
+                section_id = section_id,
+                course_id = course_id,
+                is_visible = True
             )
             return HttpResponse(status=201)

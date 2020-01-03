@@ -42,6 +42,22 @@
         box-shadow: none;
     }
 
+    .update_visibility button.btn-outline-danger:hover,
+    .update_visibility button.btn-outline-danger:focus,
+    .update_visibility button.btn-outline-danger:active {
+        background-image: none !important;
+        background-color: var(--primary) !important;
+        box-shadow: none;
+    }
+
+    .update_visibility button.btn-outline-success:hover,
+    .update_visibility button.btn-outline-success:focus,
+    .update_visibility button.btn-outline-success:active {
+        background-image: none !important;
+        background-color: #28a745 !important;
+        box-shadow: none;
+    }
+
     #main .bg-light {
         background-color:#ededed !important;
     }
@@ -110,101 +126,114 @@
                     counter_preg_evaluadas = 0
                     format_preg_evaluadas = ""
                 %>
-                %for subsection in section['sections']:
-                    % if subsection.format and ('Preguntas Evaluadas' in subsection.format):
-                        <%
-                            counter_preg_evaluadas += 1
-                            percent_preg_evaluadas += subsection.percent_graded
-                            format_preg_evaluadas = subsection.format
-                        %>
-                    % endif
-                    % if subsection.format and ('Control' in subsection.format):
-                        <!-- Preguntas Evaluadas -->
-                        % if counter_preg_evaluadas != 0:
+                % if get_section_visibility(section['url_name'], course.id):
+                    %for subsection in section['sections']:
+                        % if subsection.format and ('Preguntas Evaluadas' in subsection.format):
                             <%
-                                percent_preg_evaluadas /= counter_preg_evaluadas
-                                grade_preg_evaluadas = grade_percent_scaled(percent_preg_evaluadas, grade_cutoff)
-                                percent_preg_evaluadas *= 100
+                                counter_preg_evaluadas += 1
+                                percent_preg_evaluadas += subsection.percent_graded
+                                format_preg_evaluadas = subsection.format
                             %>
-                            <h2 class="hd hd-2 my-2 text-center text-primary">${format_preg_evaluadas}</h2>
+                        % endif
+                        % if subsection.format and ('Control' in subsection.format):
+                            <!-- Preguntas Evaluadas -->
+                            % if counter_preg_evaluadas != 0:
+                                <%
+                                    percent_preg_evaluadas /= counter_preg_evaluadas
+                                    grade_preg_evaluadas = grade_percent_scaled(percent_preg_evaluadas, grade_cutoff)
+                                    percent_preg_evaluadas *= 100
+                                %>
+                                <h2 class="hd hd-2 my-2 text-center text-primary">${format_preg_evaluadas}</h2>
+                                <div class="row d-flex bg-light my-2" id="feedback-general">
+                                    <div class="col-6 col-md-4 py-2 my-auto">
+                                        <p class="font-weight-bold text-center my-2">NOTA</p>
+                                        <div class="my-3 text-center">
+                                            <h3 class="d-inline bg-white rounded py-2 px-4">${grade_preg_evaluadas}</h3>
+                                        </div>
+                                    </div>
+                                    <div class="col-6 col-md-8 py-2 my-auto">
+                                        <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
+                                        <div class="progress my-2">
+                                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                            aria-valuenow="${percent_preg_evaluadas}" aria-valuemin="0" aria-valuemax="100" style="width:${percent_preg_evaluadas}%">
+                                                ${percent_preg_evaluadas}%
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            % endif
+                            <!-- Control -->
+                            <%
+                                grade = grade_percent_scaled(subsection.percent_graded, grade_cutoff)
+                                percent = subsection.percent_graded*100
+                            %>
+                            <h2 class="hd hd-2 my-2 text-center text-primary">${subsection.format}</h2>
                             <div class="row d-flex bg-light my-2" id="feedback-general">
                                 <div class="col-6 col-md-4 py-2 my-auto">
                                     <p class="font-weight-bold text-center my-2">NOTA</p>
                                     <div class="my-3 text-center">
-                                        <h3 class="d-inline bg-white rounded py-2 px-4">${grade_preg_evaluadas}</h3>
+                                        <h3 class="d-inline bg-white rounded py-2 px-4">${grade}</h3>
                                     </div>
                                 </div>
                                 <div class="col-6 col-md-8 py-2 my-auto">
                                     <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
                                     <div class="progress my-2">
                                         <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                                        aria-valuenow="${percent_preg_evaluadas}" aria-valuemin="0" aria-valuemax="100" style="width:${percent_preg_evaluadas}%">
-                                            ${percent_preg_evaluadas}%
+                                        aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100" style="width:${percent}%">
+                                            ${percent}%
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-12 border-top border-white py-2 my-auto">
+                                    <div class="row d-flex">
+                                        <%
+                                            correct_blocks = []
+                                            incorrect_blocks = []
+                                            for block, score in subsection.problem_scores.items():
+                                                block_feedback = get_feedback(block.block_id)
+                                                if score.earned == score.possible:
+                                                    correct_blocks.append(block_feedback)
+                                                else:
+                                                    incorrect_blocks.append(block_feedback)
+                                        %>
+                                        <div class="col-md-6 py-2">
+                                            <p class="text-monospace text-uppercase font-weight-bold text-center my-2"><i class="fas fa-check-circle"></i> Tareas Logradas</p>
+                                            <ul>
+                                                %for block in correct_blocks:
+                                                    <li>${block}</li>
+                                                %endfor
+                                            </ul>
+                                        </div>
+                                        <div class="col-md-6 py-2">
+                                            <p class="text-monospace text-uppercase font-weight-bold text-center my-2"><i class="fas fa-minus-circle"></i> Tareas no Logradas</p>
+                                            <ul>
+                                                %for block in incorrect_blocks:
+                                                    <li>${block}</li>
+                                                %endfor
+                                            </ul>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        % endif
-                        <!-- Control -->
-                        <%
-                            grade = grade_percent_scaled(subsection.percent_graded, grade_cutoff)
-                            percent = subsection.percent_graded*100
-                        %>
-                        <h2 class="hd hd-2 my-2 text-center text-primary">${subsection.format}</h2>
-                        <div class="row d-flex bg-light my-2" id="feedback-general">
-                            <div class="col-6 col-md-4 py-2 my-auto">
-                                <p class="font-weight-bold text-center my-2">NOTA</p>
-                                <div class="my-3 text-center">
-                                    <h3 class="d-inline bg-white rounded py-2 px-4">${grade}</h3>
-                                </div>
-                            </div>
-                            <div class="col-6 col-md-8 py-2 my-auto">
-                                <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
-                                <div class="progress my-2">
-                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                                    aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100" style="width:${percent}%">
-                                        ${percent}%
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-12 border-top border-white py-2 my-auto">
-                                <div class="row d-flex">
-                                    <%
-                                        correct_blocks = []
-                                        incorrect_blocks = []
-                                        for block, score in subsection.problem_scores.items():
-                                            block_feedback = get_feedback(block.block_id)
-                                            if score.earned == score.possible:
-                                                correct_blocks.append(block_feedback)
-                                            else:
-                                                incorrect_blocks.append(block_feedback)
-                                    %>
-                                    <div class="col-md-6 py-2">
-                                        <p class="text-monospace text-uppercase font-weight-bold text-center my-2"><i class="fas fa-check-circle"></i> Tareas Logradas</p>
-                                        <ul>
-                                            %for block in correct_blocks:
-                                                <li>${block}</li>
-                                            %endfor
-                                        </ul>
-                                    </div>
-                                    <div class="col-md-6 py-2">
-                                        <p class="text-monospace text-uppercase font-weight-bold text-center my-2"><i class="fas fa-minus-circle"></i> Tareas no Logradas</p>
-                                        <ul>
-                                            %for block in incorrect_blocks:
-                                                <li>${block}</li>
-                                            %endfor
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <hr class="divider my-4">
-                    %endif
-                %endfor
+                            <hr class="divider my-4">
+                        %endif
+                    %endfor
+                % endif
             %endfor
         % else:
             <!-- 'Control' Content -->
             %for section in courseware_summary:
+                ${section}
+                % if get_section_visibility(section['url_name'], course.id):
+                    <div class="container my-4 update_visibility">
+                        <h2 class="hd hd-2">${section['display_name']}<button id="btn_${section['url_name']}" type="button" class="btn btn-outline-success visibility-btn btn-sm ml-2" onclick="changeVisibility('${section['url_name']}', '${course.id}')">Retroalimentación activada</button></h2>
+                    </div>
+                % else:
+                    <div class="container my-4 update_visibility">
+                        <h2 class="hd hd-2">${section['display_name']}<button id="btn_${section['url_name']}" type="button" class="btn btn-outline-danger visibility-btn btn-sm ml-2"  onclick="changeVisibility('${section['url_name']}', '${course.id}')">Retroalimentación desactivada</button></h2>
+                    </div>
+                % endif
+
                 %for subsection in section['sections']:
                     % if subsection.format and ('Control' in subsection.format):
                         <h2 class="hd hd-2 my-2 text-center text-primary">${subsection.format}</h2>
@@ -240,6 +269,51 @@
                 %endfor
             %endfor
             <script>
+                function changeVisibility(section_id, course_id) {
+                    var btn_text =  $('#btn_'+section_id).html();
+                    var url = "${set_visibility_url}";
+                    params = {
+                        "section_id" : section_id,
+                        "course_id" : course_id,
+                    }
+                   $.ajax({
+                        data:  params,
+                        url:   url,
+                        type:  'post',
+                        beforeSend: function () {
+                            /*
+                            * Set submit button disabled
+                            */
+                            $('#btn_'+section_id).prop("disabled", true);
+                            $('#btn_'+section_id).html("Actualizando Visibilidad");
+                        },
+                        success:  function (response) {
+                            /*
+                            * Toggle Button Class (section visibility)
+                            */
+                            $('#btn_'+section_id).toggleClass('btn-outline-success');
+                            $('#btn_'+section_id).toggleClass('btn-outline-danger');
+                            if( $('#btn_'+section_id).hasClass('btn-outline-success') ) {
+                                $('#btn_'+section_id).html("Retroalimentación activada");
+                            } else {
+                                $('#btn_'+section_id).html("Retroalimentación desactivada");
+                            }
+                        },
+                        error: function (xhr, ajaxOptions, thrownError) {
+                            $('#btn_'+section_id).html(btn_text);
+                            alert("Error, intente nuevamente más tarde");
+                            console.log(xhr);
+                            console.log(ajaxOptions);
+                            console.log(thrownError);
+                        },
+                        complete: function() {
+                            /*
+                            * Set submit button enabled, hide loading
+                            */
+                            $('#btn_'+section_id).prop("disabled", false);
+                        }
+                    });
+                }
                 $( document ).ready(function() {
                     $('form').submit(function(e) {
                         var form = $(this);
