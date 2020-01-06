@@ -25,7 +25,11 @@ from models import EolFeedback, SectionVisibility
 from django.http import HttpResponse
 
 '''
+    To enable tab, set on site configurations: "EOL_FEEDBACK_TAB_ENABLED":true
+    
     TODO:
+    - Tab will appear after first changes on Advanced settings.
+        > Tab has to be initialized on course creation
     - Final grade calculated by percentage of progress. 
         > If the student didn't answer a test (or the test is not released) he will have 0% (0.0) and final grade will be affected. 
         > See what to do in this case.

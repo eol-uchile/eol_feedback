@@ -1,4 +1,5 @@
 from django.conf import settings
+from openedx.core.djangoapps.site_configuration import helpers as configuration_helpers
 from django.utils.translation import ugettext_noop
 
 from courseware.tabs import EnrolledTab
@@ -18,4 +19,4 @@ class EolFeedbackTab(TabFragmentViewMixin, EnrolledTab):
 
     @classmethod
     def is_enabled(cls, course, user=None):
-        return True
+        return configuration_helpers.get_value('EOL_FEEDBACK_TAB_ENABLED', False)

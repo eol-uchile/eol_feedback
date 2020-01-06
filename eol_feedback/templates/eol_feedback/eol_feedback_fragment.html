@@ -223,7 +223,6 @@
         % else:
             <!-- 'Control' Content -->
             %for section in courseware_summary:
-                ${section}
                 % if get_section_visibility(section['url_name'], course.id):
                     <div class="container my-4 update_visibility">
                         <h2 class="hd hd-2">${section['display_name']}<button id="btn_${section['url_name']}" type="button" class="btn btn-outline-success visibility-btn btn-sm ml-2" onclick="changeVisibility('${section['url_name']}', '${course.id}')">Retroalimentación activada</button></h2>
