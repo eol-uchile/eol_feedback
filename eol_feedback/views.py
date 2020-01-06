@@ -112,7 +112,8 @@ class EolFeedbackFragmentView(EdxFragmentView):
             avg_grade_percent = avg_grade_percent + student_grade_percent
             min_grade_percent = min(student_grade_percent, min_grade_percent)
             max_grade_percent = max(student_grade_percent, max_grade_percent)
-        avg_grade_percent = avg_grade_percent / total_students
+        if total_students != 0:
+            avg_grade_percent = avg_grade_percent / total_students
         grade_cutoff = min(course.grade_cutoffs.values()) # Get the min value
 
         # Convert grade format
