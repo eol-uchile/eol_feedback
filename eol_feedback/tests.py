@@ -15,6 +15,9 @@ from xmodule.modulestore.tests.django_utils import ModuleStoreTestCase
 from xmodule.modulestore.tests.factories import CourseFactory
 from student.tests.factories import UserFactory, CourseEnrollmentFactory
 
+import views
+from models import EolFeedback, SectionVisibility
+
 
 class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
     def setUp(self):
@@ -55,4 +58,49 @@ class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
                       kwargs={'course_id': self.course.id.to_deprecated_string()})
         self.response = self.client.get(url)
         self.assertEqual(self.response.status_code, 200)
+
+    def test_grade_percent_scaled(self):
+        # 0.03 <= grade_cutoff <= 0.97
+        test_cases = [[.0, .6, 1.], [.4, .4, 4.], [1., .97, 7.], [.7, .6, 4.8], [.3, .6, 2.5]] # [grade_percent, grade_cutoff, grade_scaled]
+        for tc in test_cases:
+            grade_scaled = views.grade_percent_scaled(tc[0], tc[1])
+            self.assertEqual(grade_scaled, tc[2])
+
+    def test_get_feedback(self):
+        block_id = 'block_id'
+        block_feedback = 'block feedback'
+        feedback = EolFeedback.objects.create(
+                block_id = block_id,
+                block_feedback = block_feedback
+            )
+        self.assertEqual(views.get_feedback(block_id), block_feedback)
+
+        block_id2 = 'block_does_not_exist'
+        block_feedback2 = ''
+        self.assertEqual(views.get_feedback(block_id2), block_feedback2)
+
+    def test_get_visibility(self):
+        section_id = "section_id"
+        course_id = "course_id"
+        is_visible = True
+        visibility = SectionVisibility.objects.create(
+                section_id = section_id,
+                course_id = course_id,
+                is_visible = is_visible
+            )
+        self.assertEqual(views.get_section_visibility(section_id, course_id), True)
+
+        section_id2 = "section_id2"
+        is_visible2 = False
+        visibility2 = SectionVisibility.objects.create(
+                section_id = section_id2,
+                course_id = course_id,
+                is_visible = is_visible2
+            )
+        self.assertEqual(views.get_section_visibility(section_id2, course_id), False)
+        
+        section_id3 = 'sections_does_not_exist'
+        self.assertEqual(views.get_section_visibility(section_id3, course_id), False)
+        
+
 
