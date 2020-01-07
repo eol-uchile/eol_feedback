@@ -6,6 +6,7 @@ from mock import patch, Mock
 
 
 from django.test import TestCase, Client
+from django.test.client import RequestFactory
 from django.urls import reverse
 
 from util.testing import UrlResetMixin
@@ -31,19 +32,22 @@ class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
         # Patch the comment client user save method so it does not try
         # to create a new cc user when creating a django user
         with patch('student.models.cc.User.save'):
-            uname = 'student'
-            email = 'student@edx.org'
-            password = 'test'
-
             # Create the student
-            self.student = UserFactory(username=uname, password=password, email=email)
-
+            self.student = UserFactory(username='student', password='test', email='student@edx.org')
             # Enroll the student in the course
             CourseEnrollmentFactory(user=self.student, course_id=self.course.id)
 
+            # Create and Enroll staff user
+            self.staff_user = UserFactory(username='staff_user', password='test', email='staff@edx.org', is_staff=True)
+            CourseEnrollmentFactory(user=self.staff_user, course_id=self.course.id)
+
             # Log the student in
             self.client = Client()
-            assert_true(self.client.login(username=uname, password=password))
+            assert_true(self.client.login(username='student', password='test'))
+            
+            # Log the user staff in
+            self.staff_client = Client()
+            assert_true(self.staff_client.login(username='staff_user', password='test'))
         
     '''
     def test_staff_get(self):
@@ -81,7 +85,7 @@ class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
 
     def test_get_visibility(self):
         section_id = "section_id"
-        course_id = "course_id"
+        course_id = self.course.id.to_deprecated_string()
         is_visible = True
         visibility = SectionVisibility.objects.create(
                 section_id = section_id,
@@ -101,6 +105,32 @@ class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
         
         section_id3 = 'sections_does_not_exist'
         self.assertEqual(views.get_section_visibility(section_id3, course_id), False)
+
+    def test_post_update_feedback(self):
+        block_id = "block_id"
+        block_feedback = "block feedback"
+        course_id = self.course.id.to_deprecated_string()
+        response = self.client.post(reverse('feedback_post_update'), {'block_id' : block_id, 'block_feedback' : block_feedback, 'course_id' : course_id})
+        self.assertEqual(response.status_code, 401) # self.client is not staff
+
+        # post with staff_client
+        response2 = self.staff_client.post(reverse('feedback_post_update'), {'block_id' : block_id, 'block_feedback' : block_feedback, 'course_id' : course_id})
+        self.assertEqual(response2.status_code, 201) # feedback created
+
+        new_block_feedback = "new block feedback"
+        response3 = self.staff_client.post(reverse('feedback_post_update'), {'block_id' : block_id, 'block_feedback' : new_block_feedback, 'course_id' : course_id})
+        self.assertEqual(response3.status_code, 200) # feedback updated
+
+    def test_post_set_visibility(self):
+        section_id = "section_id"
+        course_id = self.course.id.to_deprecated_string()
+        response = self.client.post(reverse('feedback_post_set_visibility'), {'section_id' : section_id, 'course_id' : course_id})
+        self.assertEqual(response.status_code, 401) # self.client is not staff
+
+        # post with staff_client
+        response2 = self.staff_client.post(reverse('feedback_post_set_visibility'), {'section_id' : section_id, 'course_id' : course_id})
+        self.assertEqual(response2.status_code, 201) # visibility created
+
+        response3 = self.staff_client.post(reverse('feedback_post_set_visibility'), {'section_id' : section_id, 'course_id' : course_id})
+        self.assertEqual(response3.status_code, 200) # visibility updated
         
-
-

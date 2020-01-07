@@ -135,7 +135,7 @@ def update_feedback(request):
     # check method and params
     if request.method != "POST":
         return HttpResponse(status=400)
-    if 'block_id' not in request.POST and 'block_feedback' not in request.POST and 'course_id' not in request.POST:
+    if 'block_id' not in request.POST or 'block_feedback' not in request.POST or 'course_id' not in request.POST:
         return HttpResponse(status=400)
     
     # check for access
@@ -146,7 +146,7 @@ def update_feedback(request):
     if not staff_access:
         return HttpResponse(status=401)
 
-    # get or create feedback
+    # get (and update) or create feedback
     block_id = request.POST['block_id']
     block_feedback = request.POST['block_feedback']
     with transaction.atomic():
@@ -166,7 +166,7 @@ def set_visibility(request):
     # check method and params
     if request.method != "POST":
         return HttpResponse(status=400)
-    if 'section_id' not in request.POST and 'course_id' not in request.POST:
+    if 'section_id' not in request.POST or 'course_id' not in request.POST:
         return HttpResponse(status=400)
     
     # check for access
