@@ -6,6 +6,7 @@ from courseware.tabs import EnrolledTab
 import django_comment_client.utils as utils
 from xmodule.tabs import TabFragmentViewMixin
 
+
 class EolFeedbackTab(TabFragmentViewMixin, EnrolledTab):
     type = 'eol_feedback'
     title = ugettext_noop('Feedback')

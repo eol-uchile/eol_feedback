@@ -30,13 +30,14 @@ from models import EolFeedback, SectionVisibility
 
 USER_COUNT = 11
 
+
 class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
     def setUp(self):
         super(TestStaffView, self).setUp()
         # create a course
         self.course = CourseFactory.create(org='mss', course='999',
                                            display_name='eol feedback course')
-        
+
         # Now give it some content
         with self.store.bulk_operations(self.course.id, emit_signals=False):
             chapter = ItemFactory.create(
@@ -57,7 +58,7 @@ class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
                 )
                 for __ in range(USER_COUNT - 1)
             ]
-        
+
         # Create users, enroll and set grades
         self.users = [UserFactory.create() for _ in range(USER_COUNT)]
         for user in self.users:
@@ -88,11 +89,11 @@ class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
             # Log the student in
             self.client = Client()
             assert_true(self.client.login(username='student', password='test'))
-            
+
             # Log the user staff in
             self.staff_client = Client()
             assert_true(self.staff_client.login(username='staff_user', password='test'))
-        
+
     def test_render_page(self):
 
         url = reverse('feedback_view',
@@ -102,7 +103,7 @@ class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
 
     def test_grade_percent_scaled(self):
         # 0.03 <= grade_cutoff <= 0.97
-        test_cases = [[.0, .6, 1.], [.4, .4, 4.], [1., .97, 7.], [.7, .6, 4.8], [.3, .6, 2.5]] # [grade_percent, grade_cutoff, grade_scaled]
+        test_cases = [[.0, .6, 1.], [.4, .4, 4.], [1., .97, 7.], [.7, .6, 4.8], [.3, .6, 2.5]]  # [grade_percent, grade_cutoff, grade_scaled]
         for tc in test_cases:
             grade_scaled = views.grade_percent_scaled(tc[0], tc[1])
             self.assertEqual(grade_scaled, tc[2])
@@ -111,9 +112,9 @@ class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
         block_id = 'block_id'
         block_feedback = 'block feedback'
         feedback = EolFeedback.objects.create(
-                block_id = block_id,
-                block_feedback = block_feedback
-            )
+            block_id=block_id,
+            block_feedback=block_feedback
+        )
         self.assertEqual(views.get_feedback(block_id), block_feedback)
 
         block_id2 = 'block_does_not_exist'
@@ -125,21 +126,21 @@ class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
         course_id = self.course.id
         is_visible = True
         visibility = SectionVisibility.objects.create(
-                section_id = section_id,
-                course_id = course_id,
-                is_visible = is_visible
-            )
+            section_id=section_id,
+            course_id=course_id,
+            is_visible=is_visible
+        )
         self.assertEqual(views.get_section_visibility(section_id, course_id), True)
 
         section_id2 = "section_id2"
         is_visible2 = False
         visibility2 = SectionVisibility.objects.create(
-                section_id = section_id2,
-                course_id = course_id,
-                is_visible = is_visible2
-            )
+            section_id=section_id2,
+            course_id=course_id,
+            is_visible=is_visible2
+        )
         self.assertEqual(views.get_section_visibility(section_id2, course_id), False)
-        
+
         section_id3 = 'sections_does_not_exist'
         self.assertEqual(views.get_section_visibility(section_id3, course_id), False)
 
@@ -147,30 +148,30 @@ class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
         block_id = "block_id"
         block_feedback = "block feedback"
         course_id = self.course.id
-        response = self.client.post(reverse('feedback_post_update'), {'block_id' : block_id, 'block_feedback' : block_feedback, 'course_id' : course_id})
-        self.assertEqual(response.status_code, 401) # self.client is not staff
+        response = self.client.post(reverse('feedback_post_update'), {'block_id': block_id, 'block_feedback': block_feedback, 'course_id': course_id})
+        self.assertEqual(response.status_code, 401)  # self.client is not staff
 
         # post with staff_client
-        response2 = self.staff_client.post(reverse('feedback_post_update'), {'block_id' : block_id, 'block_feedback' : block_feedback, 'course_id' : course_id})
-        self.assertEqual(response2.status_code, 201) # feedback created
+        response2 = self.staff_client.post(reverse('feedback_post_update'), {'block_id': block_id, 'block_feedback': block_feedback, 'course_id': course_id})
+        self.assertEqual(response2.status_code, 201)  # feedback created
 
         new_block_feedback = "new block feedback"
-        response3 = self.staff_client.post(reverse('feedback_post_update'), {'block_id' : block_id, 'block_feedback' : new_block_feedback, 'course_id' : course_id})
-        self.assertEqual(response3.status_code, 200) # feedback updated
+        response3 = self.staff_client.post(reverse('feedback_post_update'), {'block_id': block_id, 'block_feedback': new_block_feedback, 'course_id': course_id})
+        self.assertEqual(response3.status_code, 200)  # feedback updated
 
     def test_post_set_visibility(self):
         section_id = "section_id"
         course_id = self.course.id
-        response = self.client.post(reverse('feedback_post_set_visibility'), {'section_id' : section_id, 'course_id' : course_id})
-        self.assertEqual(response.status_code, 401) # self.client is not staff
+        response = self.client.post(reverse('feedback_post_set_visibility'), {'section_id': section_id, 'course_id': course_id})
+        self.assertEqual(response.status_code, 401)  # self.client is not staff
 
         # post with staff_client
-        response2 = self.staff_client.post(reverse('feedback_post_set_visibility'), {'section_id' : section_id, 'course_id' : course_id})
-        self.assertEqual(response2.status_code, 201) # visibility created
+        response2 = self.staff_client.post(reverse('feedback_post_set_visibility'), {'section_id': section_id, 'course_id': course_id})
+        self.assertEqual(response2.status_code, 201)  # visibility created
 
-        response3 = self.staff_client.post(reverse('feedback_post_set_visibility'), {'section_id' : section_id, 'course_id' : course_id})
-        self.assertEqual(response3.status_code, 200) # visibility updated
-        
+        response3 = self.staff_client.post(reverse('feedback_post_set_visibility'), {'section_id': section_id, 'course_id': course_id})
+        self.assertEqual(response3.status_code, 200)  # visibility updated
+
     def test_get_course_info(self):
         course_key = self.course.id
         course = get_course_with_access(self.student, "load", course_key)

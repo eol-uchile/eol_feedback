@@ -27,6 +27,9 @@ from django.core.cache import cache
 
 
 def _get_context(request, course_id):
+    """
+        Return all course/student/user data
+    """
     course_key = CourseKey.from_string(course_id)
     course = get_course_with_access(request.user, "load", course_key)
 
@@ -40,7 +43,7 @@ def _get_context(request, course_id):
     if request.user.id != student.id:
         # refetch the course as the assumed student
         course = get_course_with_access(student, 'load', course_key, check_if_enrolled=True)
-    course_grade = CourseGradeFactory().read(student, course) # Student grades
+    course_grade = CourseGradeFactory().read(student, course)  # Student grades
     courseware_summary = list(course_grade.chapter_grades.values())
     course_expiration_fragment = generate_course_expired_fragment(student, course)
 
@@ -57,16 +60,20 @@ def _get_context(request, course_id):
         "courseware_summary": courseware_summary,
         "grade_summary": course_grade.summary,
         "course_expiration_fragment": course_expiration_fragment,
-        "grade_percent_scaled" : grade_percent_scaled,
-        "get_section_visibility" : get_section_visibility,
-        "get_feedback" : get_feedback,
-        "update_url" : request.build_absolute_uri('/')[:-1] + "/student_feedback/update",
-        "set_visibility_url" : request.build_absolute_uri('/')[:-1] + "/student_feedback/set_visibility",
+        "grade_percent_scaled": grade_percent_scaled,
+        "get_section_visibility": get_section_visibility,
+        "get_feedback": get_feedback,
+        "update_url": request.build_absolute_uri('/')[:-1] + "/student_feedback/update",
+        "set_visibility_url": request.build_absolute_uri('/')[:-1] + "/student_feedback/set_visibility",
     }
     return context
 
+
 def _get_course_info(course, course_key):
-    data = cache.get("eol_feedback-" + course_key._to_string() + "-course_info") # cache
+    """
+        Calculate grade cutoff, average grade, min grade and max grade of all students enrolled in the course
+    """
+    data = cache.get("eol_feedback-" + course_key._to_string() + "-course_info")  # cache
     if data is None:
         # Get active students on the course
         enrolled_students = User.objects.filter(
@@ -99,7 +106,7 @@ def _get_course_info(course, course_key):
             max_grade_percent = max(student_grade_percent, max_grade_percent)
         if total_students != 0:
             avg_grade_percent = avg_grade_percent / total_students
-        grade_cutoff = min(course.grade_cutoffs.values()) # Get the min value
+        grade_cutoff = min(course.grade_cutoffs.values())  # Get the min value
 
         # Convert grade format
         avg_grade = grade_percent_scaled(avg_grade_percent, grade_cutoff)
@@ -108,29 +115,41 @@ def _get_course_info(course, course_key):
 
         # cache
         data = [grade_cutoff, avg_grade, min_grade, max_grade]
-        cache.set("eol_feedback-" + course_key._to_string() + "-course_info", data, 60*5)
+        cache.set("eol_feedback-" + course_key._to_string() + "-course_info", data, 60 * 5)
 
     return data[0], data[1], data[2], data[3]  # grade_cutoff, avg_grade, min_grade, max_grade
 
 
 def grade_percent_scaled(grade_percent, grade_cutoff):
+    """
+        Scale grade percent by grade cutoff. Grade between 1.0 - 7.0
+    """
     if grade_percent < grade_cutoff:
         return round(10. * (3. / grade_cutoff * grade_percent + 1.)) / 10.
     return round((3. / (1. - grade_cutoff) * grade_percent + (7. - (3. / (1. - grade_cutoff)))) * 10.) / 10.
 
+
 def get_section_visibility(section_id, course_id):
+    """
+        Return true/false if section is visible.
+    """
     try:
         visibility = SectionVisibility.objects.get(section_id=section_id, course_id=course_id)
         return visibility.is_visible
     except SectionVisibility.DoesNotExist:
-        return False    
+        return False
+
 
 def get_feedback(block_id):
+    """
+        Return feedback text if exist
+    """
     try:
         feedback = EolFeedback.objects.get(block_id=block_id)
         return feedback.block_feedback
     except EolFeedback.DoesNotExist:
         return ''
+
 
 class EolFeedbackFragmentView(EdxFragmentView):
     def render_to_fragment(self, request, course_id, **kwargs):
@@ -139,13 +158,17 @@ class EolFeedbackFragmentView(EdxFragmentView):
         fragment = Fragment(html)
         return fragment
 
+
 def update_feedback(request):
+    """
+        Update or create feedback of block_id by POST Method. Request must have block_id, block_feedback and course_id params.
+    """
     # check method and params
     if request.method != "POST":
         return HttpResponse(status=400)
     if 'block_id' not in request.POST or 'block_feedback' not in request.POST or 'course_id' not in request.POST:
         return HttpResponse(status=400)
-    
+
     # check for access
     course_id = request.POST['course_id']
     course_key = CourseKey.from_string(course_id)
@@ -157,26 +180,29 @@ def update_feedback(request):
     # get (and update) or create feedback
     block_id = request.POST['block_id']
     block_feedback = request.POST['block_feedback']
-    with transaction.atomic():
-        try:
-            feedback = EolFeedback.objects.get(block_id=block_id)
-            feedback.block_feedback = block_feedback
-            feedback.save()
-            return HttpResponse(status=200)
-        except EolFeedback.DoesNotExist:
-            feedback = EolFeedback.objects.create(
-                block_id = block_id,
-                block_feedback = block_feedback
-            )
-            return HttpResponse(status=201)
+    try:
+        feedback = EolFeedback.objects.get(block_id=block_id)
+        feedback.block_feedback = block_feedback
+        feedback.save()
+        return HttpResponse(status=200)
+    except EolFeedback.DoesNotExist:
+        feedback = EolFeedback.objects.create(
+            block_id=block_id,
+            block_feedback=block_feedback
+        )
+        return HttpResponse(status=201)
+
 
 def set_visibility(request):
+    """
+        Update or create visibility of section_id by POST Method. Request must have section_id and course_id
+    """
     # check method and params
     if request.method != "POST":
         return HttpResponse(status=400)
     if 'section_id' not in request.POST or 'course_id' not in request.POST:
         return HttpResponse(status=400)
-    
+
     # check for access
     course_id = request.POST['course_id']
     course_key = CourseKey.from_string(course_id)
@@ -187,16 +213,15 @@ def set_visibility(request):
 
     # change or create visibility
     section_id = request.POST['section_id']
-    with transaction.atomic():
-        try:
-            visibility = SectionVisibility.objects.get(section_id=section_id, course_id=course_id)
-            visibility.is_visible = not visibility.is_visible # change bool
-            visibility.save()
-            return HttpResponse(status=200)
-        except SectionVisibility.DoesNotExist:
-            visibility = SectionVisibility.objects.create(
-                section_id = section_id,
-                course_id = course_id,
-                is_visible = True
-            )
-            return HttpResponse(status=201)
+    try:
+        visibility = SectionVisibility.objects.get(section_id=section_id, course_id=course_id)
+        visibility.is_visible = not visibility.is_visible  # change bool
+        visibility.save()
+        return HttpResponse(status=200)
+    except SectionVisibility.DoesNotExist:
+        visibility = SectionVisibility.objects.create(
+            section_id=section_id,
+            course_id=course_id,
+            is_visible=True
+        )
+        return HttpResponse(status=201)
