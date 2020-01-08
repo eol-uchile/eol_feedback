@@ -9,7 +9,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
-    - name: Install dependencies
+    - name: Run Tests
       run: |
         cd .github/
         docker-compose run lms /openedx/requirements/eol_feedback/.github/test.sh

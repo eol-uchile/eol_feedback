@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from nose.tools import assert_true
+from openedx.core.lib.tests.tools import assert_true
 from mock import patch, Mock
 
 
