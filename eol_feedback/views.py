@@ -23,6 +23,7 @@ from django.db import transaction
 from models import EolFeedback, SectionVisibility
 
 from django.http import HttpResponse
+from django.core.cache import cache
 
 
 def _get_context(request, course_id):
@@ -65,44 +66,51 @@ def _get_context(request, course_id):
     return context
 
 def _get_course_info(course, course_key):
-    # Get active students on the course
-    enrolled_students = User.objects.filter(
-        courseenrollment__course_id=course_key,
-        courseenrollment__is_active=1
-    ).order_by('username').select_related("profile")
+    data = cache.get("eol_feedback-" + course_key._to_string() + "-course_info") # cache
+    if data is None:
+        # Get active students on the course
+        enrolled_students = User.objects.filter(
+            courseenrollment__course_id=course_key,
+            courseenrollment__is_active=1
+        ).order_by('username').select_related("profile")
 
-    total_students = enrolled_students.count()
+        total_students = enrolled_students.count()
 
-    # Get grade summary
-    with modulestore().bulk_operations(course.location.course_key):
-        student_info = [
-            {
-                'username': student.username,
-                'id': student.id,
-                'email': student.email,
-                'grade_summary': CourseGradeFactory().read(student, course).summary
-            }
-            for student in enrolled_students
-        ]
+        # Get grade summary
+        with modulestore().bulk_operations(course.location.course_key):
+            student_info = [
+                {
+                    'username': student.username,
+                    'id': student.id,
+                    'email': student.email,
+                    'grade_summary': CourseGradeFactory().read(student, course).summary
+                }
+                for student in enrolled_students
+            ]
 
-    # Calculate average, min and max grades
-    avg_grade_percent = 0.
-    min_grade_percent = 1.
-    max_grade_percent = 0.
-    for student in student_info:
-        student_grade_percent = student['grade_summary']['percent']
-        avg_grade_percent = avg_grade_percent + student_grade_percent
-        min_grade_percent = min(student_grade_percent, min_grade_percent)
-        max_grade_percent = max(student_grade_percent, max_grade_percent)
-    if total_students != 0:
-        avg_grade_percent = avg_grade_percent / total_students
-    grade_cutoff = min(course.grade_cutoffs.values()) # Get the min value
+        # Calculate average, min and max grades
+        avg_grade_percent = 0.
+        min_grade_percent = 1.
+        max_grade_percent = 0.
+        for student in student_info:
+            student_grade_percent = student['grade_summary']['percent']
+            avg_grade_percent = avg_grade_percent + student_grade_percent
+            min_grade_percent = min(student_grade_percent, min_grade_percent)
+            max_grade_percent = max(student_grade_percent, max_grade_percent)
+        if total_students != 0:
+            avg_grade_percent = avg_grade_percent / total_students
+        grade_cutoff = min(course.grade_cutoffs.values()) # Get the min value
 
-    # Convert grade format
-    avg_grade = grade_percent_scaled(avg_grade_percent, grade_cutoff)
-    min_grade = grade_percent_scaled(min_grade_percent, grade_cutoff)
-    max_grade = grade_percent_scaled(max_grade_percent, grade_cutoff)
-    return grade_cutoff, avg_grade, min_grade, max_grade
+        # Convert grade format
+        avg_grade = grade_percent_scaled(avg_grade_percent, grade_cutoff)
+        min_grade = grade_percent_scaled(min_grade_percent, grade_cutoff)
+        max_grade = grade_percent_scaled(max_grade_percent, grade_cutoff)
+
+        # cache
+        data = [grade_cutoff, avg_grade, min_grade, max_grade]
+        cache.set("eol_feedback-" + course_key._to_string() + "-course_info", data, 60*5)
+
+    return data[0], data[1], data[2], data[3]  # grade_cutoff, avg_grade, min_grade, max_grade
 
 
 def grade_percent_scaled(grade_percent, grade_cutoff):
