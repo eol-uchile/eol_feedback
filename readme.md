@@ -1,3 +1,9 @@
+# EOL Feedback
+
+![https://github.com/eol-uchile/eol_feedback/actions](https://github.com/eol-uchile/eol_feedback/workflows/Python%20application/badge.svg)
+
+Adding feedback for student exams
+
 *To enable tab, set on site configurations (django admin): **"EOL_FEEDBACK_TAB_ENABLED":true***
 
 ## TESTS
