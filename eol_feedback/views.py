@@ -87,9 +87,9 @@ def _get_course_info(course, course_key):
             user_id__in = enrolled_students,
             course_id = course_key
         ).aggregate(avg_percent = Avg('percent_grade'), min_percent = Min('percent_grade'), max_percent = Max('percent_grade'))
-        avg_grade_percent = course_info['avg_percent']
-        min_grade_percent = course_info['min_percent']
-        max_grade_percent = course_info['max_percent']
+        avg_grade_percent = course_info.get('avg_percent', 0.)
+        min_grade_percent = course_info.get('min_percent', 1.)
+        max_grade_percent = course_info.get('max_percent', 0.)
 
         grade_cutoff = min(course.grade_cutoffs.values())  # Get the min value
 
