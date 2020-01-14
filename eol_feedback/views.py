@@ -79,31 +79,24 @@ def _get_course_info(course, course_key):
         enrolled_students = User.objects.filter(
             courseenrollment__course_id=course_key,
             courseenrollment__is_active=1
-        ).order_by('username').select_related("profile")
+        )
 
         total_students = enrolled_students.count()
-
-        # Get grade summary
-        with modulestore().bulk_operations(course.location.course_key):
-            student_info = [
-                {
-                    'username': student.username,
-                    'id': student.id,
-                    'email': student.email,
-                    'grade_summary': CourseGradeFactory().read(student, course).summary
-                }
-                for student in enrolled_students
-            ]
 
         # Calculate average, min and max grades
         avg_grade_percent = 0.
         min_grade_percent = 1.
         max_grade_percent = 0.
-        for student in student_info:
-            student_grade_percent = student['grade_summary']['percent']
-            avg_grade_percent = avg_grade_percent + student_grade_percent
-            min_grade_percent = min(student_grade_percent, min_grade_percent)
-            max_grade_percent = max(student_grade_percent, max_grade_percent)
+
+        # Get grade summary
+        with modulestore().bulk_operations(course.location.course_key):   
+            for student in enrolled_students:
+                grade_summary = CourseGradeFactory().read(student, course).summary
+                student_grade_percent = grade_summary['percent']
+                avg_grade_percent = avg_grade_percent + student_grade_percent
+                min_grade_percent = min(student_grade_percent, min_grade_percent)
+                max_grade_percent = max(student_grade_percent, max_grade_percent)
+
         if total_students != 0:
             avg_grade_percent = avg_grade_percent / total_students
         grade_cutoff = min(course.grade_cutoffs.values())  # Get the min value
