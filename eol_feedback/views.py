@@ -12,7 +12,8 @@ from opaque_keys.edx.keys import CourseKey
 
 from django.contrib.auth.models import User
 from lms.djangoapps.grades.course_grade_factory import CourseGradeFactory
-from xmodule.modulestore.django import modulestore
+from lms.djangoapps.grades.models import PersistentCourseGrade
+from django.db.models import Avg, Max, Min, Sum
 
 from courseware.access import has_access
 from courseware.masquerade import setup_masquerade
@@ -81,24 +82,15 @@ def _get_course_info(course, course_key):
             courseenrollment__is_active=1
         )
 
-        total_students = enrolled_students.count()
-
-        # Calculate average, min and max grades
-        avg_grade_percent = 0.
-        min_grade_percent = 1.
-        max_grade_percent = 0.
-
         # Get grade summary
-        with modulestore().bulk_operations(course.location.course_key):   
-            for student in enrolled_students:
-                grade_summary = CourseGradeFactory().read(student, course).summary
-                student_grade_percent = grade_summary['percent']
-                avg_grade_percent = avg_grade_percent + student_grade_percent
-                min_grade_percent = min(student_grade_percent, min_grade_percent)
-                max_grade_percent = max(student_grade_percent, max_grade_percent)
+        course_info = PersistentCourseGrade.objects.filter(
+            user_id__in = enrolled_students,
+            course_id = course_key
+        ).aggregate(avg_percent = Avg('percent_grade'), min_percent = Min('percent_grade'), max_percent = Max('percent_grade'))
+        avg_grade_percent = course_info['avg_percent']
+        min_grade_percent = course_info['min_percent']
+        max_grade_percent = course_info['max_percent']
 
-        if total_students != 0:
-            avg_grade_percent = avg_grade_percent / total_students
         grade_cutoff = min(course.grade_cutoffs.values())  # Get the min value
 
         # Convert grade format

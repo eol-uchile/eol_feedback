@@ -4,7 +4,23 @@
 
 Adding feedback for student exams
 
-*To enable tab, set on site configurations (django admin): **"EOL_FEEDBACK_TAB_ENABLED":true***
+## Configurations
+
+LMS Django Admin:
+
+- */admin/site_configuration/siteconfiguration/*
+    - **"EOL_FEEDBACK_TAB_ENABLED":true**
+- */admin/grades/persistentgradesenabledflag/*
+    - Set Flag Enabled
+- */admin/grades/coursepersistentgradesflag/*
+    - Add course id
+    - Set Enable
+- */admin/waffle/switch/*
+    - Add Switch and set Enable: **grades.assume_zero_grade_if_absent**
+
+If courses already exists:
+
+    > docker-compose exec lms python manage.py lms --settings=tutor.production compute_grades --courses COURSE_ID
 
 ## TESTS
 **Prepare tests:**
