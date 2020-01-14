@@ -94,9 +94,9 @@ def _get_course_info(course, course_key):
         grade_cutoff = min(course.grade_cutoffs.values())  # Get the min value
 
         # Convert grade format
-        avg_grade = grade_percent_scaled(avg_grade_percent, grade_cutoff)
-        min_grade = grade_percent_scaled(min_grade_percent, grade_cutoff)
-        max_grade = grade_percent_scaled(max_grade_percent, grade_cutoff)
+        avg_grade = grade_percent_scaled(avg_grade_percent, grade_cutoff) if avg_grade_percent is not None else 1.
+        min_grade = grade_percent_scaled(min_grade_percent, grade_cutoff) if min_grade_percent is not None else 1.
+        max_grade = grade_percent_scaled(max_grade_percent, grade_cutoff) if max_grade_percent is not None else 1.
 
         # cache
         data = [grade_cutoff, avg_grade, min_grade, max_grade]
@@ -109,6 +109,8 @@ def grade_percent_scaled(grade_percent, grade_cutoff):
     """
         Scale grade percent by grade cutoff. Grade between 1.0 - 7.0
     """
+    if grade_percent == 0.:
+        return 1.
     if grade_percent < grade_cutoff:
         return round(10. * (3. / grade_cutoff * grade_percent + 1.)) / 10.
     return round((3. / (1. - grade_cutoff) * grade_percent + (7. - (3. / (1. - grade_cutoff)))) * 10.) / 10.
