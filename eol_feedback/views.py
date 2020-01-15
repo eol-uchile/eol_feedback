@@ -26,6 +26,8 @@ from models import EolFeedback, SectionVisibility
 from django.http import HttpResponse
 from django.core.cache import cache
 
+from django.urls import reverse
+
 
 def _get_context(request, course_id):
     """
@@ -64,8 +66,8 @@ def _get_context(request, course_id):
         "grade_percent_scaled": grade_percent_scaled,
         "get_section_visibility": get_section_visibility,
         "get_feedback": get_feedback,
-        "update_url": request.build_absolute_uri('/')[:-1] + "/student_feedback/update",
-        "set_visibility_url": request.build_absolute_uri('/')[:-1] + "/student_feedback/set_visibility",
+        "update_url": reverse('feedback_post_update'),
+        "set_visibility_url": reverse('feedback_post_set_visibility'),
     }
     return context
 
