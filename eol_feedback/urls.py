@@ -12,7 +12,7 @@ urlpatterns = (
         r'courses/{}/student_feedback$'.format(
             settings.COURSE_ID_PATTERN,
         ),
-        EolFeedbackFragmentView.as_view(),
+        login_required(EolFeedbackFragmentView.as_view()),
         name='feedback_view',
     ),
     url(
