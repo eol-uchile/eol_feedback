@@ -69,7 +69,10 @@
 </style>
 
 <%
-    is_staff_view = not masquerade or masquerade.role != "student"
+    if staff_access:
+        is_staff_view = not masquerade or masquerade.role != "student"
+    else:
+        is_staff_view = False
 %>
 <main id="main" aria-label="Content" tabindex="-1">
     <div class="container my-4">
