@@ -23,7 +23,7 @@ from openedx.features.course_duration_limits.access import generate_course_expir
 from django.db import transaction
 from models import EolFeedback, SectionVisibility
 
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.core.cache import cache
 
 from django.urls import reverse
@@ -142,10 +142,21 @@ def get_feedback(block_id):
 
 class EolFeedbackFragmentView(EdxFragmentView):
     def render_to_fragment(self, request, course_id, **kwargs):
+        if(not self.has_page_access(request.user, course_id)):
+            raise Http404()
         context = _get_context(request, course_id)
         html = render_to_string('eol_feedback/eol_feedback_fragment.html', context)
         fragment = Fragment(html)
         return fragment
+            
+
+    def has_page_access(self, user, course_id):
+        course_key = CourseKey.from_string(course_id)
+        return User.objects.filter(
+            courseenrollment__course_id=course_key,
+            courseenrollment__is_active=1,
+            pk = user.id
+        ).exists()
 
 
 def update_feedback(request):

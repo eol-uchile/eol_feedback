@@ -6,6 +6,8 @@ from courseware.tabs import EnrolledTab
 import django_comment_client.utils as utils
 from xmodule.tabs import TabFragmentViewMixin
 
+from django.contrib.auth.models import User
+
 
 class EolFeedbackTab(TabFragmentViewMixin, EnrolledTab):
     type = 'eol_feedback'
@@ -20,4 +22,9 @@ class EolFeedbackTab(TabFragmentViewMixin, EnrolledTab):
 
     @classmethod
     def is_enabled(cls, course, user=None):
+        """
+            Check if user is enrolled on course
+        """
+        if not super(EolFeedbackTab, cls).is_enabled(course, user):
+            return False
         return configuration_helpers.get_value('EOL_FEEDBACK_TAB_ENABLED', False)
