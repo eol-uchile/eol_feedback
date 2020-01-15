@@ -105,7 +105,7 @@
                     %>
                     <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                     aria-valuenow="${student_avg_percent}" aria-valuemin="0" aria-valuemax="100" style="width:${student_avg_percent}%">
-                        ${student_avg_percent}%
+                        ${int(student_avg_percent)}%
                     </div>
                 </div>
             </div>
@@ -156,7 +156,7 @@
                                         <div class="progress my-2">
                                             <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                                             aria-valuenow="${percent_preg_evaluadas}" aria-valuemin="0" aria-valuemax="100" style="width:${percent_preg_evaluadas}%">
-                                                ${percent_preg_evaluadas}%
+                                                ${int(percent_preg_evaluadas)}%
                                             </div>
                                         </div>
                                     </div>
@@ -180,7 +180,7 @@
                                     <div class="progress my-2">
                                         <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
                                         aria-valuenow="${percent}" aria-valuemin="0" aria-valuemax="100" style="width:${percent}%">
-                                            ${percent}%
+                                            ${int(percent)}%
                                         </div>
                                     </div>
                                 </div>
