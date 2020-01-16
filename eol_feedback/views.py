@@ -182,13 +182,13 @@ def update_feedback(request):
     block_feedback = request.POST['block_feedback']
     try:
         feedback = EolFeedback.objects.get(block_id=block_id)
-        feedback.block_feedback = block_feedback
+        feedback.block_feedback = block_feedback.strip()
         feedback.save()
         return HttpResponse(status=200)
     except EolFeedback.DoesNotExist:
         feedback = EolFeedback.objects.create(
             block_id=block_id,
-            block_feedback=block_feedback
+            block_feedback=block_feedback.strip()
         )
         return HttpResponse(status=201)
 
