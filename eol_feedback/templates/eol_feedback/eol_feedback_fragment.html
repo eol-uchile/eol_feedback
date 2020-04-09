@@ -131,7 +131,7 @@
                 %>
                 % if get_section_visibility(section['url_name'], course.id):
                     %for subsection in section['sections']:
-                        % if subsection.format and ('Preguntas Evaluadas' in subsection.format):
+                        % if subsection.format and ('Preguntas Evaluadas' in subsection.format or 'Preguntas Calificadas' in subsection.format):
                             <%
                                 counter_preg_evaluadas += 1
                                 percent_preg_evaluadas += subsection.percent_graded
