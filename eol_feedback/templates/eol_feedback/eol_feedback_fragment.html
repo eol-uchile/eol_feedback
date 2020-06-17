@@ -66,6 +66,19 @@
         background-color: white;
         width: 200px;
     }
+
+    .divno_retro{
+        padding: 10px;
+        border: var(--primary) 2px solid!important;
+        border-radius: 11px;
+        text-align: center;
+        width: 640px!important;
+        margin: 0px auto;
+    }
+
+    .no_retro{
+        text-align:center;
+    }
 </style>
 
 <%
@@ -79,6 +92,7 @@
         <h2 class="hd hd-2">Retroalimentación Controles</h2>
         <h3 class="hd hd-3 text-black-50">${course.display_name_with_default_escaped}</h3>
         <!-- General Content -->
+        <!--
         <h2 class="hd hd-2 mt-2 text-center text-primary">Información General</h2>
         <div class="row d-flex bg-light my-2" id="feedback-general">
             <div class="col-6 col-md-4 py-2 my-auto">
@@ -118,11 +132,15 @@
                 <p class="my-3"><span class="font-weight-bold">Nota Máxima:</span> <span class="font-weight-light"></span> ${max_grade}</p>
             </div>
         </div>
+        -->
 
         <hr class="divider my-4">
 
         % if not is_staff_view:
             <!-- 'Control' Content -->
+            <%
+              no_retro = True
+            %>
             %for section in courseware_summary:
                 <%
                     percent_preg_evaluadas = .0
@@ -142,6 +160,7 @@
                             <!-- Preguntas Evaluadas -->
                             % if counter_preg_evaluadas != 0:
                                 <%
+                                    no_retro = False
                                     percent_preg_evaluadas /= counter_preg_evaluadas
                                     grade_preg_evaluadas = grade_percent_scaled(percent_preg_evaluadas, grade_cutoff)
                                     percent_preg_evaluadas *= 100
@@ -169,6 +188,7 @@
                             <%
                                 grade = grade_percent_scaled(subsection.percent_graded, grade_cutoff)
                                 percent = subsection.percent_graded*100
+                                no_retro = False
                             %>
                             <h2 class="hd hd-2 my-2 text-center text-primary">${subsection.format}</h2>
                             <div class="row d-flex bg-light my-2" id="feedback-general">
@@ -223,6 +243,11 @@
                     %endfor
                 % endif
             %endfor
+            %if no_retro:
+            <div class="divno_retro">
+                <p class="no_retro">Aún no tiene ninguna retroalimentación asociada a alguna de sus evaluaciones</p>
+            </div>
+            %endif
         % else:
             <!-- 'Control' Content -->
             %for section in courseware_summary:
