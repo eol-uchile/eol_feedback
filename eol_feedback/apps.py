@@ -1,27 +1,27 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from django.apps import AppConfig
 from openedx.core.djangoapps.plugins.constants import PluginSettings, PluginURLs, ProjectType, SettingsType
 
 
 class EolFeedbackConfig(AppConfig):
-    name = u'eol_feedback'
+    name = 'eol_feedback'
 
     plugin_app = {
         PluginURLs.CONFIG: {
             ProjectType.LMS: {
-                PluginURLs.NAMESPACE: u'',
+                PluginURLs.NAMESPACE: '',
                 PluginURLs.REGEX: r'^',
-                PluginURLs.RELATIVE_PATH: u'urls',
+                PluginURLs.RELATIVE_PATH: 'urls',
             }
         },
         PluginSettings.CONFIG: {
             ProjectType.CMS: {
-                SettingsType.COMMON: {PluginSettings.RELATIVE_PATH: u'settings.common'},
+                SettingsType.COMMON: {PluginSettings.RELATIVE_PATH: 'settings.common'},
             },
             ProjectType.LMS: {
-                SettingsType.COMMON: {PluginSettings.RELATIVE_PATH: u'settings.common'},
+                SettingsType.COMMON: {PluginSettings.RELATIVE_PATH: 'settings.common'},
             },
         }
     }

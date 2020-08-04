@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
+
 
 from courseware.courses import get_course_with_access
 from django.template.loader import render_to_string
@@ -21,7 +21,7 @@ from django.db.models import prefetch_related_objects
 from openedx.features.course_duration_limits.access import generate_course_expired_fragment
 
 from django.db import transaction
-from models import EolFeedback, SectionVisibility
+from .models import EolFeedback, SectionVisibility
 
 from django.http import Http404, HttpResponse
 from django.core.cache import cache
@@ -48,8 +48,8 @@ def _get_context(request, course_id):
         course = get_course_with_access(student, 'load', course_key, check_if_enrolled=True)
     course_grade = CourseGradeFactory().read(student, course)  # Student grades
     courseware_summary = list(course_grade.chapter_grades.values())
-    course_expiration_fragment = generate_course_expired_fragment(student, course)
-
+    course_expiration_fragment = generate_course_expired_fragment(student, course)    
+    
     context = {
         "course": course,
         "avg_grade": avg_grade,
@@ -59,6 +59,7 @@ def _get_context(request, course_id):
         "supports_preview_menu": True,
         "staff_access": staff_access,
         "masquerade": masquerade,
+        "can_masquerade": staff_access,
         "student": student,
         "courseware_summary": courseware_summary,
         "grade_summary": course_grade.summary,
