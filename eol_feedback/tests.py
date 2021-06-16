@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-from __future__ import unicode_literals
 
-from openedx.core.lib.tests.tools import assert_true
+
 from mock import patch, Mock
 
 
@@ -25,8 +24,8 @@ from courseware.courses import get_course_with_access
 from six import text_type
 from six.moves import range
 
-import views
-from models import EolFeedback, SectionVisibility
+from . import views
+from .models import EolFeedback, SectionVisibility
 
 USER_COUNT = 11
 
@@ -88,11 +87,11 @@ class TestStaffView(UrlResetMixin, ModuleStoreTestCase):
 
             # Log the student in
             self.client = Client()
-            assert_true(self.client.login(username='student', password='test'))
+            self.assertTrue(self.client.login(username='student', password='test'))
 
             # Log the user staff in
             self.staff_client = Client()
-            assert_true(self.staff_client.login(username='staff_user', password='test'))
+            self.assertTrue(self.staff_client.login(username='staff_user', password='test'))
 
     def test_render_page(self):
 

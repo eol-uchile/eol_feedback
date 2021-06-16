@@ -3,7 +3,6 @@ from openedx.core.djangoapps.site_configuration import helpers as configuration_
 from django.utils.translation import ugettext_noop
 
 from courseware.tabs import EnrolledTab
-import django_comment_client.utils as utils
 from xmodule.tabs import TabFragmentViewMixin
 
 from django.contrib.auth.models import User
