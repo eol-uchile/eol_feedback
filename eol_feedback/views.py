@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 
-from courseware.courses import get_course_with_access
+from lms.djangoapps.courseware.courses import get_course_with_access
 from django.template.loader import render_to_string
 from django.shortcuts import render_to_response
 from web_fragments.fragment import Fragment
@@ -15,8 +15,8 @@ from lms.djangoapps.grades.course_grade_factory import CourseGradeFactory
 from lms.djangoapps.grades.models import PersistentCourseGrade
 from django.db.models import Avg, Max, Min, Sum
 
-from courseware.access import has_access
-from courseware.masquerade import setup_masquerade
+from lms.djangoapps.courseware.access import has_access
+from lms.djangoapps.courseware.masquerade import setup_masquerade
 from django.db.models import prefetch_related_objects
 from openedx.features.course_duration_limits.access import generate_course_expired_fragment
 
