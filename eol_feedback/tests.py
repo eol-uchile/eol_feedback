@@ -19,7 +19,7 @@ from lms.djangoapps.courseware.tests.factories import StudentModuleFactory
 
 from lms.djangoapps.grades.tasks import compute_all_grades_for_course as task_compute_all_grades_for_course
 from opaque_keys.edx.keys import CourseKey
-from courseware.courses import get_course_with_access
+from lms.djangoapps.courseware.courses import get_course_with_access
 
 from six import text_type
 from six.moves import range
