@@ -8,7 +8,7 @@ Adding feedback for student exams
 
 Migrate Models:
 
-    > docker-compose exec lms python manage.py lms --settings=tutor.production migrate eol_feedback
+    > docker-compose exec lms python manage.py lms --settings=prod.production migrate eol_feedback
 
 LMS Django Admin:
 
@@ -24,7 +24,7 @@ LMS Django Admin:
 
 If courses already exists:
 
-    > docker-compose exec lms python manage.py lms --settings=tutor.production compute_grades --courses COURSE_ID
+    > docker-compose exec lms python manage.py lms --settings=prod.production compute_grades --courses COURSE_ID
 
 ## TESTS
 **Prepare tests:**
