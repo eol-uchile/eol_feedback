@@ -8,15 +8,15 @@ services:
     restart: unless-stopped
 
   mongodb:
-    image: mongo:3.2.16
+    image: mongo:4.0.26
     # Use WiredTiger in all environments, just like at edx.org
     command: mongod --smallfiles --nojournal --storageEngine wiredTiger
     restart: unless-stopped
 
   lms:
-    image: eoluchile/edx-platform:testing-koa
+    image: ghcr.io/eol-uchile/edx-platform:testing-eol-koa
     volumes:
-      - ../:/openedx/requirements/eol_feedback
+      - ../:/openedx/requirements/app
     depends_on:
       - memcached
       - mongodb

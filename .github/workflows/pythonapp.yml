@@ -1,6 +1,20 @@
-name: Python application
+name: Python application test
 
-on: [push]
+on:
+  push:
+    paths-ignore:
+      - '.github/workflows/**'
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    branches:
+      - 'master'
+      - 'main'
+    paths-ignore:
+      - '.github/workflows/**'
+  workflow_call:
 
 jobs:
   build:
@@ -8,8 +22,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v4
     - name: Run Tests
       run: |
-        cd .github/
-        docker-compose run lms /openedx/requirements/eol_feedback/.github/test.sh
+        mkdir wf_tmp
+        wget https://raw.githubusercontent.com/eol-uchile/eol_feedback/master/.github/docker-compose.yml -O wf_tmp/docker-compose.yml
+        cd wf_tmp/
+        docker-compose run lms /openedx/requirements/app/.github/test.sh
