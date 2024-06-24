@@ -29,4 +29,4 @@ jobs:
         mkdir wf_tmp
         wget https://raw.githubusercontent.com/eol-uchile/eol_feedback/master/.github/docker-compose.yml -O wf_tmp/docker-compose.yml
         cd wf_tmp/
-        docker-compose run lms /openedx/requirements/app/.github/test.sh
+        docker compose run lms /openedx/requirements/app/.github/test.sh
