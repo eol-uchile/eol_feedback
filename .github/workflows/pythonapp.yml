@@ -30,3 +30,9 @@ jobs:
         wget https://raw.githubusercontent.com/eol-uchile/eol_feedback/master/.github/docker-compose.yml -O wf_tmp/docker-compose.yml
         cd wf_tmp/
         docker compose run lms /openedx/requirements/app/.github/test.sh
+    - name: Clean Tests
+      run: |
+        cd wf_tmp/
+        docker compose down
+        cd ..
+        rm -Rf wf_tmp/
