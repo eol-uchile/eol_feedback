@@ -1,38 +1,25 @@
 name: Python application test
 
 on:
-  merge_group:
   push:
-    paths-ignore:
-      - '.github/workflows/**'
+    branches:
+      - 'eol-release/*'
   pull_request:
     types:
       - opened
       - reopened
       - synchronize
     branches:
-      - 'master'
-      - 'main'
-    paths-ignore:
-      - '.github/workflows/**'
-  workflow_call:
+      - 'eol-release/*'
 
 jobs:
-  build:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-    - name: Run Tests
-      run: |
-        mkdir wf_tmp
-        wget https://raw.githubusercontent.com/eol-uchile/eol_feedback/master/.github/docker-compose.yml -O wf_tmp/docker-compose.yml
-        cd wf_tmp/
-        docker compose run lms /openedx/requirements/app/.github/test.sh
-    - name: Clean Tests
-      run: |
-        cd wf_tmp/
-        docker compose down
-        cd ..
-        rm -Rf wf_tmp/
+  test:
+    uses: eol-uchile/workflow-commons/.github/workflows/pythonapp.yml@pythonapp-2
+    with:
+      app_id: ${{ vars.EOLITO_BOT_APP_ID }}
+      django-lms: true
+      django-cms: false
+      platform-eol: true
+      platform-openuchile: false
+    secrets:
+      private_key: ${{ secrets.EOLITO_BOT_PRIVATE_KEY }}
