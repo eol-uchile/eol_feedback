@@ -2,7 +2,7 @@ import setuptools
 
 setuptools.setup(
     name="eol_feedback",
-    version="0.0.3",
+    version="0.0.4",
     author="EOL Uchile",
     author_email="eol-ing@uchile.cl",
     description="Eol feedback",

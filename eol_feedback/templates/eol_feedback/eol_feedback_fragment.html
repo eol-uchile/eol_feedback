@@ -6,7 +6,6 @@
 <%inherit file="/main.html" />
 <%block name="headextra">
 <%static:css group='style-course'/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js"></script>
 </%block>
 <%include file="/courseware/course_navigation.html" args="active_page='eol_feedback'" />
 
@@ -142,48 +141,45 @@
               no_retro = True
             %>
             %for section in courseware_summary:
-                <%
-                    percent_preg_evaluadas = .0
-                    counter_preg_evaluadas = 0
-                    format_preg_evaluadas = ""
-                %>
                 % if get_section_visibility(section['url_name'], course.id):
-                    %for subsection in section['sections']:
-                        % if subsection.format and ('Preguntas Evaluadas' in subsection.format or 'Preguntas Calificadas' in subsection.format):
-                            <%
+                    <%
+                        percent_preg_evaluadas = .0
+                        counter_preg_evaluadas = 0
+                        format_preg_evaluadas = ""
+                        for subsection in section['sections']:
+                            if subsection.format and ('Preguntas Evaluadas' in subsection.format or 'Preguntas Calificadas' in subsection.format):
                                 counter_preg_evaluadas += 1
                                 percent_preg_evaluadas += subsection.percent_graded
                                 format_preg_evaluadas = subsection.format
-                            %>
-                        % endif
-                        % if subsection.format and ('Control' in subsection.format):
-                            <!-- Preguntas Evaluadas -->
-                            % if counter_preg_evaluadas != 0:
-                                <%
-                                    no_retro = False
-                                    percent_preg_evaluadas /= counter_preg_evaluadas
-                                    grade_preg_evaluadas = grade_percent_scaled(percent_preg_evaluadas, grade_cutoff)
-                                    percent_preg_evaluadas *= 100
-                                %>
-                                <h2 class="hd hd-2 my-2 text-center text-primary">${format_preg_evaluadas}</h2>
-                                <div class="row d-flex bg-light my-2" id="feedback-general">
-                                    <div class="col-6 col-md-4 py-2 my-auto">
-                                        <p class="font-weight-bold text-center my-2">NOTA</p>
-                                        <div class="my-3 text-center">
-                                            <h3 class="d-inline bg-white rounded py-2 px-4">${grade_preg_evaluadas}</h3>
-                                        </div>
-                                    </div>
-                                    <div class="col-6 col-md-8 py-2 my-auto">
-                                        <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
-                                        <div class="progress my-2">
-                                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
-                                            aria-valuenow="${percent_preg_evaluadas}" aria-valuemin="0" aria-valuemax="100" style="width:${percent_preg_evaluadas}%">
-                                                ${int(percent_preg_evaluadas)}%
-                                            </div>
-                                        </div>
+                    %>
+                    <!-- Preguntas Evaluadas -->
+                    % if counter_preg_evaluadas != 0:
+                        <%
+                            no_retro = False
+                            grade_preg_evaluadas = grade_percent_scaled(percent_preg_evaluadas / counter_preg_evaluadas, grade_cutoff)
+                            display_percent_preg_evaluadas = (percent_preg_evaluadas / counter_preg_evaluadas) * 100
+                        %>
+                        <h2 class="hd hd-2 my-2 text-center text-primary">${format_preg_evaluadas}</h2>
+                        <div class="row d-flex bg-light my-2" id="feedback-general">
+                            <div class="col-6 col-md-4 py-2 my-auto">
+                                <p class="font-weight-bold text-center my-2">NOTA</p>
+                                <div class="my-3 text-center">
+                                    <h3 class="d-inline bg-white rounded py-2 px-4">${grade_preg_evaluadas}</h3>
+                                </div>
+                            </div>
+                            <div class="col-6 col-md-8 py-2 my-auto">
+                                <p class="font-weight-bold mt-3">Porcentaje de Logro</p>
+                                <div class="progress my-2">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                    aria-valuenow="${display_percent_preg_evaluadas}" aria-valuemin="0" aria-valuemax="100" style="width:${display_percent_preg_evaluadas}%">
+                                        ${int(display_percent_preg_evaluadas)}%
                                     </div>
                                 </div>
-                            % endif
+                            </div>
+                        </div>
+                    % endif
+                    %for subsection in section['sections']:
+                        % if subsection.format and ('Control' in subsection.format):
                             <!-- Control -->
                             <!-- Calculo el porcentaje a partir del ptje porque sino no llega con decimales -->
                             <!-- Aprovecho mismo ciclo de tareas logradas y no logradas -->
@@ -200,7 +196,7 @@
                                         correct_blocks.append(block_feedback)
                                     else:
                                         incorrect_blocks.append(block_feedback)
-                                            
+
                                 floatpercent = (totalearned/totalpossible)
                                 grade = grade_percent_scaled(floatpercent, grade_cutoff)
                                 percent = subsection.percent_graded*100
